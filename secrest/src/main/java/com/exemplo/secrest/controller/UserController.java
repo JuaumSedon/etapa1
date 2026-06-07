@@ -10,6 +10,9 @@ import com.exemplo.secrest.repository.UserRepository;
 import com.exemplo.secrest.service.CodigoCacheService;
 import com.exemplo.secrest.service.UserService;
 import com.exemplo.secrest.entity.User;
+import java.util.List;
+import com.exemplo.secrest.entity.Role;
+import com.exemplo.secrest.enums.RoleName;
 
 
 import java.util.UUID;
@@ -69,7 +72,7 @@ public class UserController {
             User newUser = new User();
             newUser.setEmail(dto.email());
 
-            newUser.setRole(Role.ROLE_CUSTOMER);
+            newUser.setRoles(List.of(Role.builder().name(RoleName.ROLE_CUSTOMER).build()));
             newUser.setPassword(UUID.randomUUID().toString());
             return userRepository.save(newUser);
         });
