@@ -89,4 +89,16 @@ public class UserController {
 
         return ResponseEntity.ok().build();
     }
+
+
+    @PostMapping("/auth/verify-code")
+    public ResponseEntity<String> verifyCode(@RequestBody com.exemplo.secrest.dto.VerifyCodeDto dto) {
+        boolean isValid = codigoCacheService.verifyCode(dto.email(), dto.code());
+        
+        if (isValid) {
+            return ResponseEntity.ok("Token-Validado-Com-Sucesso");
+        }
+        
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Código inválido ou expirado.");
+    }
 }
