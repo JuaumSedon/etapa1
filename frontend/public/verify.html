@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Verificar Código</title>
+    <style>
+        body { font-family: Arial, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #f4f4f9; }
+        .card { background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); text-align: center; }
+        input { padding: 10px; width: 80%; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 4px; text-align: center; letter-spacing: 2px; font-size: 1.2rem;}
+        button { padding: 10px 20px; background-color: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background-color: #218838; }
+        #error-msg { color: red; margin-top: 10px; font-size: 0.9rem; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>Verificação</h2>
+        <p>Enviamos um código para o seu e-mail.</p>
+        
+        <form id="verify-form">
+            <input type="hidden" id="email" name="email">
+            
+            <input type="text" id="code" name="code" placeholder="000000" maxlength="6" required>
+            <br>
+            <button type="submit">Validar Código</button>
+        </form>
+        <div id="error-msg"></div>
+    </div>
+
+    <script>
+        // Pega o e-mail que veio na URL e coloca no campo oculto
+        const urlParams = new URLSearchParams(window.location.search);
+        const userEmail = urlParams.get('email');
+        document.getElementById('email').value = userEmail;
+
+        document.getElementById('verify-form').addEventListener('submit', async (e) => {
+            e.preventDefault(); // Impede a página de recarregar
+            
+            const email = document.getElementById('email').value;
+            const code = document.getElementById('code').value;
+            const errorMsg = document.getElementById('error-msg');
+
+            try {
+                const response = await fetch('/verify-code', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, code })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Armazena um token fictício (ou a mensagem de sucesso) e redireciona
+                    sessionStorage.setItem('jwt_token', data.message);
+                    alert("Sucesso! Você seria redirecionado para o Dashboard agora.");
+                    window.location.href = '/dashboard'; // Vai dar erro 404 por enquanto, pois criaremos na Etapa 4
+                } else {
+                    errorMsg.textContent = data.message;
+                }
+            } catch (err) {
+                errorMsg.textContent = "Erro na comunicação com o servidor.";
+            }
+        });
+    </script>
+</body>
+</html>
