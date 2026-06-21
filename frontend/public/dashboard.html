@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard VIP</title>
+    <style>
+        body { font-family: Arial, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #e9ecef; }
+        .card { background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); text-align: center; width: 350px; }
+        button { padding: 10px 20px; background-color: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; width: 100%; margin-top: 15px; font-size: 1rem; }
+        button.danger { background-color: #dc3545; }
+        button:hover { opacity: 0.9; }
+        #result { margin-top: 20px; font-size: 0.95rem; padding: 10px; border-radius: 4px; display: none; }
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2> Acesso Liberado!</h2>
+        <p>Seu perfil foi salvo e você está na área VIP.</p>
+        
+        <button id="btn-test">Testar Rota Protegida</button>
+        <button id="btn-logout" class="danger">Sair (Logout)</button>
+        
+        <div id="result"></div>
+    </div>
+
+    <script>
+        const token = sessionStorage.getItem('jwt_token');
+        
+        if (!token) {
+            window.location.href = '/';
+        }
+
+        document.getElementById('btn-test').addEventListener('click', async () => {
+            const resultDiv = document.getElementById('result');
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = " Testando acesso ao Java...";
+            resultDiv.className = "";
+
+            try {
+                const response = await fetch('/api/protected', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (response.ok) {
+                    resultDiv.innerHTML = "✅ <strong>Sucesso!</strong> O Spring Security reconheceu seu Token e permitiu o acesso!";
+                    resultDiv.className = "success";
+                } else {
+                    resultDiv.innerHTML = " <strong>Acesso Negado!</strong> O Spring Security barrou sua entrada.";
+                    resultDiv.className = "error";
+                }
+            } catch (error) {
+                resultDiv.innerHTML = "⚠️ Erro de conexão com o servidor Java.";
+                resultDiv.className = "error";
+            }
+        });
+
+        document.getElementById('btn-logout').addEventListener('click', () => {
+            sessionStorage.removeItem('jwt_token');
+            window.location.href = '/';
+        });
+    </script>
+</body>
+</html>

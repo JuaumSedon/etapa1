@@ -1,13 +1,7 @@
 package com.exemplo.secrest.service;
 
-import com.exemplo.secrest.dto.CreateUserDto;
-import com.exemplo.secrest.dto.LoginUserDto;
-import com.exemplo.secrest.dto.RecoveryJwtTokenDto;
-import com.exemplo.secrest.entity.Role;
-import com.exemplo.secrest.entity.User;
-import com.exemplo.secrest.repository.UserRepository;
-import com.exemplo.secrest.security.service.JwtTokenService;
-import com.exemplo.secrest.security.service.UserDetailsImpl;
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -15,7 +9,15 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
+import com.exemplo.secrest.dto.CreateUserDto;
+import com.exemplo.secrest.dto.LoginUserDto;
+import com.exemplo.secrest.dto.RecoveryJwtTokenDto;
+import com.exemplo.secrest.dto.UpdateProfileDto;
+import com.exemplo.secrest.entity.Role;
+import com.exemplo.secrest.entity.User;
+import com.exemplo.secrest.repository.UserRepository;
+import com.exemplo.secrest.security.service.JwtTokenService;
+import com.exemplo.secrest.security.service.UserDetailsImpl;
 
 @Service
 public class UserService {
@@ -47,5 +49,18 @@ public class UserService {
                 .roles(List.of(Role.builder().name(createDto.role()).build()))
                 .build();
         userRepository.save(newUser);
+    }
+
+
+    public User updateProfile(String email, UpdateProfileDto dto) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado."));
+
+        user.setName(dto.name());
+
+        Role newRole = Role.builder().name(dto.role()).build();
+        user.setRoles(List.of(newRole));
+
+        return userRepository.save(user);
     }
 }

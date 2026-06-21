@@ -18,41 +18,36 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableWebSecurity
 public class SecurityConfiguration {
 
-    public static final String[] ENDPOINTS_WITH_AUTHENTICATION_NOT_REQUIRED = {
-            "/users/login",
-            "/users",
-            "/users/auth/request-code",
-            "/users/auth/verify-code"
-    };
-
-    public static final String[] ENDPOINTS_ADMIN = {
-            "/users/test/administrator"
-    };
-
-    public static final String[] ENDPOINTS_CUSTOMER = {
-            "/users/test/customer"
-    };
-
     @Autowired
     private UserAuthenticationFilter userAuthenticationFilter;
 
+    public static final String[] ENDPOINTS_WITH_AUTHENTICATION_NOT_REQUIRED = {
+            "/users/auth/login",
+            "/users/auth/request-code",
+            "/users/auth/verify-code",
+            "/users"
+    };
+
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        return http.csrf(csrf -> csrf.disable())
+    public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
+        return httpSecurity
+                .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(authorize -> authorize
+                .authorizeHttpRequests(auth -> auth
+                        // 1. Libera o acesso para pedir código e verificar código
                         .requestMatchers(ENDPOINTS_WITH_AUTHENTICATION_NOT_REQUIRED).permitAll()
-                        .requestMatchers(ENDPOINTS_ADMIN).hasRole("ADMINISTRATOR")
-                        .requestMatchers(ENDPOINTS_CUSTOMER).hasRole("CUSTOMER")
-                        .anyRequest().authenticated()
+                        // 2. Exige token APENAS para atualizar o perfil
+                        .requestMatchers("/users/update-profile").authenticated()
+                        // 3. Bloqueia o resto
+                        .anyRequest().denyAll()
                 )
                 .addFilterBefore(userAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
-        return authConfig.getAuthenticationManager();
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
+        return authenticationConfiguration.getAuthenticationManager();
     }
 
     @Bean

@@ -1,26 +1,33 @@
 package com.exemplo.secrest.controller;
 
+
+import java.util.List;
+import java.util.UUID;
+
+import org.springframework.security.core.Authentication;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.exemplo.secrest.dto.CreateUserDto;
 import com.exemplo.secrest.dto.EmailDto;
 import com.exemplo.secrest.dto.LoginUserDto;
 import com.exemplo.secrest.dto.RecoveryJwtTokenDto;
 import com.exemplo.secrest.dto.RequestCodeDto;
+import com.exemplo.secrest.dto.UpdateProfileDto;
+import com.exemplo.secrest.dto.UserProfileDto;
+import com.exemplo.secrest.entity.Role;
+import com.exemplo.secrest.entity.User;
+import com.exemplo.secrest.enums.RoleName;
 import com.exemplo.secrest.producer.UserProducer;
 import com.exemplo.secrest.repository.UserRepository;
 import com.exemplo.secrest.service.CodigoCacheService;
 import com.exemplo.secrest.service.UserService;
-import com.exemplo.secrest.entity.User;
-import java.util.List;
-import com.exemplo.secrest.entity.Role;
-import com.exemplo.secrest.enums.RoleName;
-
-
-import java.util.UUID;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/users")
@@ -43,6 +50,12 @@ public class UserController {
         userService.createUser(dto);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
+
+
+    @GetMapping("/users")
+    public ResponseEntity<String> getProtectedInfo(Authentication authentication) {
+        return ResponseEntity.ok("Acesso permitido para: " + authentication.getName());
+}
 
     @PostMapping("/login")
     public ResponseEntity<RecoveryJwtTokenDto> login(@RequestBody LoginUserDto dto) {
@@ -101,4 +114,22 @@ public class UserController {
         
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Código inválido ou expirado.");
     }
+
+
+
+    @PostMapping("/update-profile")
+    public ResponseEntity<UserProfileDto> updateProfile(Authentication authentication, @RequestBody UpdateProfileDto dto) {
+        String email = authentication.getName();
+        
+        User updated = userService.updateProfile(email, dto);
+        
+        UserProfileDto responseDto = new UserProfileDto(
+                updated.getName(), 
+                updated.getEmail(), 
+                updated.getRoles().get(0).getName()
+        );
+        
+        return ResponseEntity.ok(responseDto);
+    }
 }
+

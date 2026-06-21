@@ -17,6 +17,9 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    // Novo campo adicionado para a Etapa 4!
+    private String name;
+
     @Column(unique = true)
     private String email;
 
