@@ -40,6 +40,7 @@
 
             try {
                 const response = await fetch('/api/protected', {
+                    method: 'GET',
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 

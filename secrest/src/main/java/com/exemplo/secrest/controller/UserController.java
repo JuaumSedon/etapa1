@@ -1,6 +1,5 @@
 package com.exemplo.secrest.controller;
 
-
 import java.util.List;
 import java.util.UUID;
 
@@ -51,12 +50,13 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
-
-    @GetMapping("/users")
+@GetMapping
     public ResponseEntity<String> getProtectedInfo(Authentication authentication) {
-        return ResponseEntity.ok("Acesso permitido para: " + authentication.getName());
-}
-
+        if (authentication == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token ausente ou inválido.");
+        }
+        return ResponseEntity.ok("Token validado com sucesso! Usuário: " + authentication.getName());
+    }
     @PostMapping("/login")
     public ResponseEntity<RecoveryJwtTokenDto> login(@RequestBody LoginUserDto dto) {
         RecoveryJwtTokenDto token = userService.authenticateUser(dto);
@@ -80,11 +80,9 @@ public class UserController {
 
     @PostMapping("/auth/request-code")
     public ResponseEntity<Void> requestCode(@RequestBody RequestCodeDto dto) {
-
         User user = userRepository.findByEmail(dto.email()).orElseGet(() -> {
             User newUser = new User();
             newUser.setEmail(dto.email());
-
             newUser.setRoles(List.of(Role.builder().name(RoleName.ROLE_CUSTOMER).build()));
             newUser.setPassword(UUID.randomUUID().toString());
             return userRepository.save(newUser);
@@ -99,10 +97,8 @@ public class UserController {
                 "Seu código é: " + code);
 
         userProducer.publishMessageEmail(emailDto);
-
         return ResponseEntity.ok().build();
     }
-
 
     @PostMapping("/auth/verify-code")
     public ResponseEntity<String> verifyCode(@RequestBody com.exemplo.secrest.dto.VerifyCodeDto dto) {
@@ -111,16 +107,12 @@ public class UserController {
         if (isValid) {
             return ResponseEntity.ok("Token-Validado-Com-Sucesso");
         }
-        
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Código inválido ou expirado.");
     }
-
-
 
     @PostMapping("/update-profile")
     public ResponseEntity<UserProfileDto> updateProfile(Authentication authentication, @RequestBody UpdateProfileDto dto) {
         String email = authentication.getName();
-        
         User updated = userService.updateProfile(email, dto);
         
         UserProfileDto responseDto = new UserProfileDto(
@@ -128,8 +120,8 @@ public class UserController {
                 updated.getEmail(), 
                 updated.getRoles().get(0).getName()
         );
-        
         return ResponseEntity.ok(responseDto);
     }
-}
 
+    
+}
