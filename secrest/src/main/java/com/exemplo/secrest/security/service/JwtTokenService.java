@@ -13,7 +13,7 @@ import java.time.ZonedDateTime;
 @Service
 public class JwtTokenService {
 
-   private static final String SECRET_KEY = "12345678901234567890123456789012";
+    private static final String SECRET_KEY = "12345678901234567890123456789012";
     private static final String ISSUER = "secrest-api";
 
     public String generateToken(UserDetailsImpl user) {
@@ -30,7 +30,23 @@ public class JwtTokenService {
         }
     }
 
-public String getSubjectFromToken(String token) {
+    
+    public String generateTokenByEmail(String email) {
+        try {
+            Algorithm algorithm = Algorithm.HMAC256(SECRET_KEY);
+            return JWT.create()
+                    .withIssuer(ISSUER)
+                    .withIssuedAt(creationDate())
+                    .withExpiresAt(expirationDate())
+                    .withSubject(email)
+                    .sign(algorithm);
+        } catch (JWTCreationException e) {
+            throw new JWTCreationException("Erro ao gerar token JWT", e);
+        }
+    }
+
+  
+    public String getSubjectFromToken(String token) {
         try {
             Algorithm algorithm = Algorithm.HMAC256(SECRET_KEY);
             return JWT.require(algorithm)
@@ -42,6 +58,8 @@ public String getSubjectFromToken(String token) {
             throw new JWTVerificationException("Token JWT inválido ou expirado");
         }
     }
+
+   
     private Instant creationDate() {
         return ZonedDateTime.now(ZoneId.of("America/Sao_Paulo")).toInstant();
     }
